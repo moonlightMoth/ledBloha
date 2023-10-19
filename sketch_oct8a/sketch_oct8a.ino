@@ -2,8 +2,11 @@
 #include <WebServer.h>
 
 
+
 String _ssidAP = "PANKROK";
 String _passwordAP = "";
+String ssid = "Wi-Fi";  
+String password = "password";
 IPAddress gateway(192,168,1,1);
 IPAddress ip(192,168,1,90);
 IPAddress subnet (255,255,255,0);
@@ -33,18 +36,41 @@ void Wifi_init(){
   WiFi.softAP(_ssidAP.c_str(), _passwordAP.c_str());
 }
 
-void handle_OnConnect(){
-  server.send(200, "text/html", SendHTML());
+
+
+
+void Wifi_connect(String ss, String pass){
+  WiFi.disconnect();
+  WiFi.begin(ss, pass);
+  while (WiFi.status() != WL_CONNECTED) {
+  delay(1000);
+  Serial.print(".");
+  }
+  Serial.println("");
+  Serial.println("WiFi connected..!");
+  Serial.print("Got IP: ");  Serial.println(WiFi.localIP());
 }
+
+
 String SendHTML(){
   String Web="";
-  Web+="<!DOCTYPE html><html lang=\"en\"><head><meta charset=\"UTF-8\"><meta http-equiv=\"X-UA-Compatible\" content=\"IE=edge\"><meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\"><title>Led</title></head><body style=\"display: flex; justify-content: center;\"><div><div style=\"border: 1px solid violet; display: inline-block; padding:20px; text-align: center;\">";
-  Web+="<label>GRIO 12 Green</label><form action=\"/gpio12on\"><button type=\"submit\" style=\"width:90px; border-radius:10px; cursor: pointer\">Включить</button></form><br><form action=\"/gpio12off\"><button type=\"submit\" style\"width:90px; border-radius:10px; cursor: pointer\">Выключить</button></form>";
-  Web+="</div><div style=\"border: 1px solid violet; display: inline-block; padding:20px; text-align: center;\"><label>GRIO 13 Red</label><form action=\"/gpio13on\"><button type=\"submit\" style=\"width:90px; border-radius:10px; cursor: pointer\">Включить</button></form><form action=\"/gpio13off\"><button type=\"submit\" style=\"width:90px; border-radius:10px; cursor: pointer\">Выключить</button></form>";
-  Web+="</div><div style=\"border: 1px solid violet; display: inline-block; padding:20px; text-align: center;\"><label>GRIO 14 Blue</label><br><form action=\"/gpio14on\"><button type=\"submit\" style=\"width:90px; border-radius:10px; cursor: pointer\">Включить</button></form><br><form action=\"/gpio14off\"><button type=\"submit\" style=\"width:90px; border-radius:10px; cursor: pointer\">Выключить</button></form></div></div>";
+  Web+="<!DOCTYPE html><html lang=\"en\"><head><meta charset=\"UTF-8\"><meta http-equiv=\"X-UA-Compatible\" content=\"IE=edge\"><meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\"><title>Led</title></head><body style=\"display: flex; justify-content: center;\">";
+  Web+="<div><div style=\"border: 1px solid violet; display: inline-block; padding:20px; text-align: center;\">";
+  Web+="<form action='/setWifi'> <input type='text' name='ssid'><input type='password' name='password'><input type='submit' value='send'></form>";
+  Web+="</div></div></body></html>";
+ // Web+="<label>GRIO 12 Green</label><form action=\"/gpio12on\"><button type=\"submit\" style=\"width:90px; border-radius:10px; cursor: pointer\">Включить</button></form><br><form action=\"/gpio12off\"><button type=\"submit\" style\"width:90px; border-radius:10px; cursor: pointer\">Выключить</button></form>";
+  //Web+="</div><div style=\"border: 1px solid violet; display: inline-block; padding:20px; text-align: center;\"><label>GRIO 13 Red</label><form action=\"/gpio13on\"><button type=\"submit\" style=\"width:90px; border-radius:10px; cursor: pointer\">Включить</button></form><form action=\"/gpio13off\"><button type=\"submit\" style=\"width:90px; border-radius:10px; cursor: pointer\">Выключить</button></form>";
+  //Web+="</div><div style=\"border: 1px solid violet; display: inline-block; padding:20px; text-align: center;\"><label>GRIO 14 Blue</label><br><form action=\"/gpio14on\"><button type=\"submit\" style=\"width:90px; border-radius:10px; cursor: pointer\">Включить</button></form><br><form action=\"/gpio14off\"><button type=\"submit\" style=\"width:90px; border-radius:10px; cursor: pointer\">Выключить</button></form></div></div>";
+  
  
   return Web;
 }
+
+
+void handle_OnConnect(){
+  server.send(200, "text/html", SendHTML());
+}
+
 
 String trig12true()
 {
@@ -84,9 +110,9 @@ String trig14false()
 
 
 
+
 void setup() {
   // put your setup code here, to run once:
-  
   Wifi_init();
   server.on("/", handle_OnConnect);
   server.on("/gpio12on", trig12true);
@@ -95,6 +121,9 @@ void setup() {
   server.on("/gpio13off", trig13false);
   server.on("/gpio14on", trig14true);
   server.on("/gpio14off", trig14false);
+   server.on("/setWifi", [](){
+    Wifi_connect(server.arg("ssid"),server.arg("password"));});
+  
   server.begin();
  // pinMode(output12, OUTPUT);
 //   pinMode(output13, OUTPUT);
@@ -130,9 +159,15 @@ void setup() {
 
 
 
+
+
 void loop() {
   // put your main code here, to run repeatedly:
   server.handleClient();
+
+
+ 
+  
 
 
   if (trigger13)
