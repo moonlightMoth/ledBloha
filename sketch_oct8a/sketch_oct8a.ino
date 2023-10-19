@@ -21,6 +21,12 @@ const int resolution = 8;
 const int output12 = 12;
 const int output13 = 13;
 const int output14 = 14;
+const int input23 = 23;
+const int output22 = 22;
+
+
+int buttonState = 0;
+
 
 bool trigger12 = false;
 bool trigger13 = false;
@@ -113,6 +119,7 @@ String trig14false()
 
 void setup() {
   // put your setup code here, to run once:
+  Serial.begin(115200);
   Wifi_init();
   server.on("/", handle_OnConnect);
   server.on("/gpio12on", trig12true);
@@ -121,10 +128,15 @@ void setup() {
   server.on("/gpio13off", trig13false);
   server.on("/gpio14on", trig14true);
   server.on("/gpio14off", trig14false);
-   server.on("/setWifi", [](){
+   server.on("/setWiFi", [](){
     Wifi_connect(server.arg("ssid"),server.arg("password"));});
   
   server.begin();
+  pinMode(input23, INPUT);
+  pinMode(output22, OUTPUT);
+
+  
+  
  // pinMode(output12, OUTPUT);
 //   pinMode(output13, OUTPUT);
 //   pinMode(output14, OUTPUT);
@@ -170,52 +182,76 @@ void loop() {
   
 
 
-  if (trigger13)
-  {
-    for(int dutyCycle = 0; dutyCycle <= 255; dutyCycle++){   
-    // changing the LED brightness with PWM
-    ledcWrite(ledChannel, dutyCycle);
-    delay(1);
+//  if (trigger13)
+//  {
+//    for(int dutyCycle = 0; dutyCycle <= 255; dutyCycle++){   
+//    // changing the LED brightness with PWM
+//    ledcWrite(ledChannel, dutyCycle);
+//    delay(1);
+//  }
+//
+//  // decrease the LED brightness
+//  for(int dutyCycle = 255; dutyCycle >= 0; dutyCycle--){
+//    // changing the LED brightness with PWM
+//    ledcWrite(ledChannel, dutyCycle);   
+//    delay(1);
+//  }
+//  }
+//
+//  if (trigger12)
+//  {
+//    for(int dutyCycle = 0; dutyCycle <= 255; dutyCycle++){   
+//    // changing the LED brightness with PWM
+//    ledcWrite(ledChannel1, dutyCycle);
+//    delay(1);
+//  }
+//
+//  // decrease the LED brightness
+//  for(int dutyCycle = 255; dutyCycle >= 0; dutyCycle--){
+//    // changing the LED brightness with PWM
+//    ledcWrite(ledChannel1, dutyCycle);   
+//    delay(1);
+//  }
+//  }
+//
+//  if (trigger14)
+//  {
+//    for(int dutyCycle = 0; dutyCycle <= 255; dutyCycle++){   
+//    // changing the LED brightness with PWM
+//    ledcWrite(ledChannel2, dutyCycle);
+//    delay(1);
+//  }
+//
+//  // decrease the LED brightness
+//  for(int dutyCycle = 255; dutyCycle >= 0; dutyCycle--){
+//    // changing the LED brightness with PWM
+//    ledcWrite(ledChannel2, dutyCycle);   
+//    delay(1);
+//  }
+//  }
+
+
+
+  buttonState = digitalRead(input23);
+  if (buttonState== HIGH){
+    Serial.println("HEIGy");
+   ledcWrite(ledChannel, 0);
+    ledcWrite(ledChannel1, 0);
+    ledcWrite(ledChannel2, 0);
+    digitalWrite(output22,HIGH);
+    
+  }
+  else{
+     ledcWrite(ledChannel, 255);
+    ledcWrite(ledChannel2, 255);
+    ledcWrite(ledChannel1, 255);
+    Serial.println("LET ME DOEN SLOWLY");
+    digitalWrite(output22,LOW);
   }
 
-  // decrease the LED brightness
-  for(int dutyCycle = 255; dutyCycle >= 0; dutyCycle--){
-    // changing the LED brightness with PWM
-    ledcWrite(ledChannel, dutyCycle);   
-    delay(1);
-  }
-  }
 
-  if (trigger12)
-  {
-    for(int dutyCycle = 0; dutyCycle <= 255; dutyCycle++){   
-    // changing the LED brightness with PWM
-    ledcWrite(ledChannel1, dutyCycle);
-    delay(1);
-  }
 
-  // decrease the LED brightness
-  for(int dutyCycle = 255; dutyCycle >= 0; dutyCycle--){
-    // changing the LED brightness with PWM
-    ledcWrite(ledChannel1, dutyCycle);   
-    delay(1);
-  }
-  }
 
-  if (trigger14)
-  {
-    for(int dutyCycle = 0; dutyCycle <= 255; dutyCycle++){   
-    // changing the LED brightness with PWM
-    ledcWrite(ledChannel2, dutyCycle);
-    delay(1);
-  }
-
-  // decrease the LED brightness
-  for(int dutyCycle = 255; dutyCycle >= 0; dutyCycle--){
-    // changing the LED brightness with PWM
-    ledcWrite(ledChannel2, dutyCycle);   
-    delay(1);
-  }
-  }
+  
 
 }
