@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+<style>
+    body >div{
+        display: flex;
+        align-items: center;
+        width: 100vw;
+        height: 100vh;
+        margin: 0;
+        padding: 0;
+    }
+    form{
+        background-color: #b79dff;
+        width: fit-content;
+        padding: 20px;
+        border-radius: 20px;
+        margin: 0 auto;
+        display: flex;
+        flex-direction: column;
+        gap: 20px;
+    }
+    form input{
+        padding:10px;
+        border-radius: 20px;
+    }
+    form input.submit{
+        /* background-color: blueviolet; */
+        color: blueviolet;
+        border: 2px solid blueviolet;
+        background-color: white;
+    }
+</style>
+<body>
+    <div>
+    <form>
+        <input placeholder="login" name="login"/>
+        
+        <input placeholder="password" name="password"/>
+        
+        <input class="submit" type="submit" value="Connect"/>
+    </form>
+</div>
+</body>
+</html>

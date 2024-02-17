@@ -97,6 +97,55 @@ String SendHTML() {
 }
 
 
+
+
+String SendHTMLForConnect(){
+  
+  String html = "<!DOCTYPE html>\
+<html>\
+<head>\
+  <meta charset=\"UTF-8\" />\
+  <title>Connect WiFi</title>\
+</head>\
+  <style>\
+  body >div{\
+        display: flex;\
+        align-items: center;\
+        width: 100vw;\
+        height: 100vh;\
+        margin: 0;\
+        padding: 0;}\
+    form{\
+        background-color: #b79dff;\
+        width: fit-content;\
+        padding: 20px;\
+        border-radius: 20px;\
+        margin: 0 auto;\
+        display: flex;\
+        flex-direction: column;\
+        gap: 20px;}\
+    form input{\
+        padding:10px;\
+        border-radius: 20px;}\
+    form input.submit{\
+        color: blueviolet;\
+        border: 2px solid blueviolet;\
+        background-color: white;}\
+</style>\
+<body>\
+    <div>\
+    <form>\
+        <input placeholder='login' name='login'/>\
+        <input placeholder='password' name='password'/>\
+        <input class='submit' type='submit' value='Connect'/>\
+    </form>\
+</div>\
+</body>\
+</html>";
+return html;
+  }
+
+
 void handle_OnConnect() {
   server.send(200, "text/html", SendHTML());
 }
@@ -226,4 +275,3 @@ void loop() {
 
   //считывание информации с 25-27 и вывод в ком
 }
-
