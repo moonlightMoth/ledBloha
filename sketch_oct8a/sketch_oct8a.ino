@@ -53,10 +53,13 @@ bool lastButton = LOW;
 bool currentButton = LOW;
 bool ledOn = false;
 
+bool flagConnect = false;
+
 
 WebServer server(80);
 
 void Wifi_init() {
+  Serial.println("ap mode in function");
   WiFi.disconnect();
   WiFi.mode(WIFI_AP);
   WiFi.softAPConfig(apIP, gateway, IPAddress(255, 255, 255, 0));
@@ -67,16 +70,24 @@ void Wifi_init() {
 
 
 void Wifi_connect(String ss, String pass) {
+  int connect = 8;
   WiFi.disconnect();
   WiFi.begin(ss, pass);
-  while (WiFi.status() != WL_CONNECTED) {
+  while ((WiFi.status() != WL_CONNECTED) &&(connect>=0)){
     delay(1000);
     Serial.print(".");
+    connect--;
   }
-  Serial.println("");
-  Serial.println("WiFi connected..!");
-  Serial.print("Got IP: ");
-  Serial.println(WiFi.localIP());
+  if (WiFi.status() != WL_CONNECTED){
+    Serial.println("AP MODE START");
+  }
+  else{
+    Serial.println("");
+    Serial.println("WiFi connected..!");
+    Serial.print("Got IP: ");
+    Serial.println(WiFi.localIP());
+  }
+  
 }
 
 
@@ -134,7 +145,7 @@ String SendHTMLForConnect(){
 </style>\
 <body>\
     <div>\
-    <form>\
+    <form action='setWiFi/setup'>\
         <input placeholder='login' name='login'/>\
         <input placeholder='password' name='password'/>\
         <input class='submit' type='submit' value='Connect'/>\
@@ -149,6 +160,10 @@ return html;
 void handle_OnConnect() {
   server.send(200, "text/html", SendHTML());
 }
+void handleONNotConnect(){
+  server.send(200, "text/html", SendHTMLForConnect());
+  
+}
 
 
 
@@ -158,9 +173,17 @@ void setup() {
 
   // Wifi_init();
   Wifi_connect(ssid, password);
+  if (WiFi.status() != WL_CONNECTED){
+    Serial.println("Ap mode in else");
+     Wifi_init();
+     
+  }
+  server.on("/setWiFi", handleONNotConnect);
   server.on("/", handle_OnConnect);
-  server.on("/setWiFi", []() {
-    Wifi_connect(server.arg("ssid"), server.arg("password"));
+  server.on("/setWiFi/setup", []() {
+    Serial.println(server.arg("login"));
+    Serial.println(server.arg("password"));
+    Wifi_connect(server.arg("login"), server.arg("password"));
   });
   server.on("/rgb", []() {
     // String r = server.arg("r");
