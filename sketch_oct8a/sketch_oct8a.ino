@@ -38,7 +38,6 @@ const int input_analog_blue_36 = 36;
 
 //инфа с инпута в компорт
 
-
 int buttonState = 0;
 
 
@@ -107,6 +106,7 @@ void handle_OnConnect() {
 void setup() {
   // put your setup code here, to run once:
   Serial.begin(115200);
+
   // Wifi_init();
   Wifi_connect(ssid, password);
   server.on("/", handle_OnConnect);
@@ -139,6 +139,7 @@ void setup() {
   server.begin();
   // pinMode(input23, INPUT);
   mySwitch.setDebounceTime(50);
+
 
   pinMode(input_analog_red_34, INPUT);
   pinMode(input_analog_green_39, INPUT);
@@ -225,13 +226,4 @@ void loop() {
 
   //считывание информации с 25-27 и вывод в ком
 }
-
-
-
-
-
-
-
-
-
 
