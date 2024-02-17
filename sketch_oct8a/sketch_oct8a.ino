@@ -1,29 +1,42 @@
 #include <WiFi.h>
 #include <WebServer.h>
-
-
+#include <ezButton.h>
 
 String _ssidAP = "PANKROK";
 String _passwordAP = "";
-String ssid = "Wi-Fi";  
-String password = "password";
-IPAddress gateway(192,168,1,1);
-IPAddress ip(192,168,1,90);
-IPAddress subnet (255,255,255,0);
-IPAddress apIP(192,168,1,19);
+String ssid = "LameLemurrrr";
+String password = "SinBandit";
+IPAddress gateway(192, 168, 0, 1);
+IPAddress ip(192, 168, 0, 90);
+IPAddress subnet(255, 255, 255, 0);
+IPAddress apIP(192, 168, 0, 19);
 
 const int freq = 5000;
-const int ledChannel = 0;
-const int ledChannel1 = 1;
-const int ledChannel2 = 2;
+const int ledChannel_red = 0;
+const int ledChannel_green = 1;
+const int ledChannel_blue = 2;
 const int resolution = 8;
 
-const int output12 = 12;
-const int output13 = 13;
-const int output14 = 14;
+const int output_green_12 = 12;
+const int output_red_13 = 13;
+const int output_blue_14 = 14;
 const int input23 = 23;
 const int output22 = 22;
 
+int r = 255;
+int g = 255;
+int b = 255;
+
+
+
+ezButton mySwitch(17);
+
+const int input_analog_red_34 = 34;
+const int input_analog_green_39 = 39;
+const int input_analog_blue_36 = 36;
+
+
+//инфа с инпута в компорт
 
 int buttonState = 0;
 
@@ -32,10 +45,18 @@ bool trigger12 = false;
 bool trigger13 = false;
 bool trigger14 = false;
 
+int readinput34 = 0;
+int readinput39 = 0;
+int readinput36 = 0;
+
+bool lastButton = LOW;
+bool currentButton = LOW;
+bool ledOn = false;
+
 
 WebServer server(80);
 
-void Wifi_init(){
+void Wifi_init() {
   WiFi.disconnect();
   WiFi.mode(WIFI_AP);
   WiFi.softAPConfig(apIP, gateway, IPAddress(255, 255, 255, 0));
@@ -45,213 +66,164 @@ void Wifi_init(){
 
 
 
-void Wifi_connect(String ss, String pass){
+void Wifi_connect(String ss, String pass) {
   WiFi.disconnect();
   WiFi.begin(ss, pass);
   while (WiFi.status() != WL_CONNECTED) {
-  delay(1000);
-  Serial.print(".");
+    delay(1000);
+    Serial.print(".");
   }
   Serial.println("");
   Serial.println("WiFi connected..!");
-  Serial.print("Got IP: ");  Serial.println(WiFi.localIP());
+  Serial.print("Got IP: ");
+  Serial.println(WiFi.localIP());
 }
 
 
-String SendHTML(){
-  String Web="";
-  Web+="<!DOCTYPE html><html lang=\"en\"><head><meta charset=\"UTF-8\"><meta http-equiv=\"X-UA-Compatible\" content=\"IE=edge\"><meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\"><title>Led</title></head><body style=\"display: flex; justify-content: center;\">";
-  Web+="<div><div style=\"border: 1px solid violet; display: inline-block; padding:20px; text-align: center;\">";
-  Web+="<form action='/setWifi'> <input type='text' name='ssid'><input type='password' name='password'><input type='submit' value='send'></form>";
-  Web+="</div></div></body></html>";
- // Web+="<label>GRIO 12 Green</label><form action=\"/gpio12on\"><button type=\"submit\" style=\"width:90px; border-radius:10px; cursor: pointer\">Включить</button></form><br><form action=\"/gpio12off\"><button type=\"submit\" style\"width:90px; border-radius:10px; cursor: pointer\">Выключить</button></form>";
-  //Web+="</div><div style=\"border: 1px solid violet; display: inline-block; padding:20px; text-align: center;\"><label>GRIO 13 Red</label><form action=\"/gpio13on\"><button type=\"submit\" style=\"width:90px; border-radius:10px; cursor: pointer\">Включить</button></form><form action=\"/gpio13off\"><button type=\"submit\" style=\"width:90px; border-radius:10px; cursor: pointer\">Выключить</button></form>";
-  //Web+="</div><div style=\"border: 1px solid violet; display: inline-block; padding:20px; text-align: center;\"><label>GRIO 14 Blue</label><br><form action=\"/gpio14on\"><button type=\"submit\" style=\"width:90px; border-radius:10px; cursor: pointer\">Включить</button></form><br><form action=\"/gpio14off\"><button type=\"submit\" style=\"width:90px; border-radius:10px; cursor: pointer\">Выключить</button></form></div></div>";
-  
- 
-  return Web;
+String SendHTML() {
+  String dop = "<!DOCTYPE html>\
+<html>\
+<head>\
+	<meta charset=\"UTF-8\" />\
+	<title>jscolor Sandbox</title>\
+</head>\
+<body>\
+	 <script src=\"https://moonlightmoth.ru/static/jss.js\"></script>\
+	Color: <input value=\"#3399FF80\" data-jscolor=\"{}\">\
+</body>\
+</html>";
+
+  return dop;
 }
 
 
-void handle_OnConnect(){
+void handle_OnConnect() {
   server.send(200, "text/html", SendHTML());
 }
-
-
-String trig12true()
-{
-  
-  trigger12 = true;
-  return "<html>Cool rep</html>";
-}
-String trig12false()
-{
-  trigger12 = false;
-  return "<html>Cool rep</html>";
-}
-
-
-String trig13true()
-{
-  trigger13 = true;
-  return "<html>Cool rep</html>";
-}
-String trig13false()
-{
-  trigger13 = false;
-  return "<html>Cool rep</html>";
-}
-
-
-String trig14true()
-{
-  trigger14 = true;
-  return "<html>Cool rep</html>";
-}
-String trig14false()
-{
-  trigger14 = false;
-  return "<html>Cool rep</html>";
-}
-
 
 
 
 void setup() {
   // put your setup code here, to run once:
   Serial.begin(115200);
-  Wifi_init();
+
+  // Wifi_init();
+  Wifi_connect(ssid, password);
   server.on("/", handle_OnConnect);
-  server.on("/gpio12on", trig12true);
-  server.on("/gpio12off", trig12false);
-  server.on("/gpio13on", trig13true);
-  server.on("/gpio13off", trig13false);
-  server.on("/gpio14on", trig14true);
-  server.on("/gpio14off", trig14false);
-   server.on("/setWiFi", [](){
-    Wifi_connect(server.arg("ssid"),server.arg("password"));});
-  
+  server.on("/setWiFi", []() {
+    Wifi_connect(server.arg("ssid"), server.arg("password"));
+  });
+  server.on("/rgb", []() {
+    // String r = server.arg("r");
+    // String g = server.arg("g");
+    // String b = server.arg("b");
+    // Serial.println("***");
+    // Serial.println(r);
+    // Serial.println(g);
+    // Serial.println(b);
+    String args = server.arg(0);
+    
+    int i1 = args.indexOf(',');
+    int i2 = args.indexOf(',', i1+1);
+
+    r = 254 - args.substring(1, i1).toInt();
+    g = 254 - args.substring(i1+1, i2).toInt();
+    b = 254 - args.substring(i2 + 1).toInt();
+
+    Serial.println(r);
+    Serial.println(g);
+    Serial.println(b);
+
+  });
+
   server.begin();
-  pinMode(input23, INPUT);
-  pinMode(output22, OUTPUT);
+  // pinMode(input23, INPUT);
+  mySwitch.setDebounceTime(50);
 
-  
-  
- // pinMode(output12, OUTPUT);
-//   pinMode(output13, OUTPUT);
-//   pinMode(output14, OUTPUT);
 
-// //  digitalWrite(output12, LOW);
-//   digitalWrite(output13, LOW);
-//   digitalWrite(output14, LOW);
+  pinMode(input_analog_red_34, INPUT);
+  pinMode(input_analog_green_39, INPUT);
+  pinMode(input_analog_blue_36, INPUT);
 
-  // configure LED PWM functionalitites
-  ledcSetup(ledChannel, freq, resolution);
-  
-  // attach the channel to the GPIO to be controlled
-  ledcAttachPin(output12, ledChannel);
+  pinMode(output_green_12, OUTPUT);
+  pinMode(output_red_13, OUTPUT);
+  pinMode(output_blue_14, OUTPUT);
 
   // configure LED PWM functionalitites
-  ledcSetup(ledChannel1, freq, resolution);
-  
+  ledcSetup(ledChannel_green, freq, resolution);
+
   // attach the channel to the GPIO to be controlled
-  ledcAttachPin(output13, ledChannel1);
+  ledcAttachPin(output_green_12, ledChannel_green);
 
   // configure LED PWM functionalitites
-  ledcSetup(ledChannel2, freq, resolution);
-  
+  ledcSetup(ledChannel_red, freq, resolution);
+
   // attach the channel to the GPIO to be controlled
-  ledcAttachPin(output14, ledChannel2);
+  ledcAttachPin(output_red_13, ledChannel_red);
 
- 
+  // configure LED PWM functionalitites
+  ledcSetup(ledChannel_blue, freq, resolution);
 
-
-  
+  // attach the channel to the GPIO to be controlled
+  ledcAttachPin(output_blue_14, ledChannel_blue);
 }
-
-
-
 
 
 void loop() {
   // put your main code here, to run repeatedly:
   server.handleClient();
 
+  readinput34 = analogRead(input_analog_red_34) * 255 / 4096 + 1;
+  readinput39 = analogRead(input_analog_green_39) * 255 / 4096 + 1;
+  readinput36 = analogRead(input_analog_blue_36) * 255 / 4096 + 1;
 
- 
-  
+  // Serial.print("input red: ");
+  // Serial.println(readinput34);
 
+  // Serial.print("input green: ");
+  // Serial.println(readinput39);
 
-//  if (trigger13)
-//  {
-//    for(int dutyCycle = 0; dutyCycle <= 255; dutyCycle++){   
-//    // changing the LED brightness with PWM
-//    ledcWrite(ledChannel, dutyCycle);
-//    delay(1);
-//  }
-//
-//  // decrease the LED brightness
-//  for(int dutyCycle = 255; dutyCycle >= 0; dutyCycle--){
-//    // changing the LED brightness with PWM
-//    ledcWrite(ledChannel, dutyCycle);   
-//    delay(1);
-//  }
-//  }
-//
-//  if (trigger12)
-//  {
-//    for(int dutyCycle = 0; dutyCycle <= 255; dutyCycle++){   
-//    // changing the LED brightness with PWM
-//    ledcWrite(ledChannel1, dutyCycle);
-//    delay(1);
-//  }
-//
-//  // decrease the LED brightness
-//  for(int dutyCycle = 255; dutyCycle >= 0; dutyCycle--){
-//    // changing the LED brightness with PWM
-//    ledcWrite(ledChannel1, dutyCycle);   
-//    delay(1);
-//  }
-//  }
-//
-//  if (trigger14)
-//  {
-//    for(int dutyCycle = 0; dutyCycle <= 255; dutyCycle++){   
-//    // changing the LED brightness with PWM
-//    ledcWrite(ledChannel2, dutyCycle);
-//    delay(1);
-//  }
-//
-//  // decrease the LED brightness
-//  for(int dutyCycle = 255; dutyCycle >= 0; dutyCycle--){
-//    // changing the LED brightness with PWM
-//    ledcWrite(ledChannel2, dutyCycle);   
-//    delay(1);
-//  }
-//  }
+  // Serial.print("input blue: ");
+  // Serial.println(readinput36);
 
 
+  //  buttonState = digitalRead(input23);
+  mySwitch.loop();
 
-  buttonState = digitalRead(input23);
-  if (buttonState== HIGH){
-    Serial.println("HEIGy");
-   ledcWrite(ledChannel, 0);
-    ledcWrite(ledChannel1, 0);
-    ledcWrite(ledChannel2, 0);
-    digitalWrite(output22,HIGH);
-    
-  }
-  else{
-     ledcWrite(ledChannel, 255);
-    ledcWrite(ledChannel2, 255);
-    ledcWrite(ledChannel1, 255);
-    Serial.println("LET ME DOEN SLOWLY");
-    digitalWrite(output22,LOW);
+  // currentButton = debounse(lastButton);
+  // if (lastButton == LOW && currentButton == HIGH) {
+  //   ledOn = !ledOn;
+  // }
+  // lastButton = currentButton;
+  // digitalWrite(ledPin, ledOn);
+  int state = mySwitch.getState();
+  if (state == HIGH) {
+    // Serial.println("ManualMode");
+    ledcWrite(ledChannel_red, readinput34);
+    ledcWrite(ledChannel_green, readinput39);
+    ledcWrite(ledChannel_blue, readinput36);
+  } else {
+    ledcWrite(ledChannel_red, r);
+    ledcWrite(ledChannel_green, g);
+    ledcWrite(ledChannel_blue, b);
+    // Serial.println("NetworkMode");
   }
 
+  //  if (buttonState== HIGH){
+  //    Serial.println("ManualMode");
+  //   ledcWrite(ledChannel_red, readinput34);
+  //   ledcWrite(ledChannel_green, readinput39);
+  //   ledcWrite(ledChannel_blue, readinput36);
 
+  //  }
+  //  else
+  //  {
+  //   ledcWrite(ledChannel_red, 128);
+  //   ledcWrite(ledChannel_green, 128);
+  //   ledcWrite(ledChannel_blue, 128);
+  //    Serial.println("NetworkMode");
+  //  }
 
-
-  
-
+  //считывание информации с 25-27 и вывод в ком
 }
+
